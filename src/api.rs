@@ -39,7 +39,10 @@ pub fn register(lua: &Lua) -> LuaResult<()> {
     lua.globals().set("runIn", lua.create_function(run_in)?)?;
     lua.globals().set("import", lua.create_function(import)?)?;
 
-    let script = std::fs::read_to_string("./smake.lua")?;
+    let script = std::fs::read_to_string("./smake.lua").map_err(|e| {
+        LuaError::RuntimeError(format!("Failed to read smake.lua: {}.", e).to_string())
+    })?;
+
     lua.load(&script).exec()?;
 
     Ok(())
