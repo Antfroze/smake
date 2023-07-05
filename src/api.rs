@@ -1,5 +1,5 @@
 use mlua::{prelude::*, Function, Table, Variadic};
-use std::{ffi::OsString, process::Command};
+use std::process::Command;
 
 use crate::cli;
 
@@ -16,10 +16,10 @@ pub fn init(lua: &Lua) -> LuaResult<()> {
     let method = table.get::<_, Function>(command)?;
 
     let cmd_args = args
-        .get_many::<OsString>("")
+        .get_raw("args")
         .into_iter()
         .flatten()
-        .map(|os_str| os_str.to_string_lossy())
+        .map(|str| str.to_string_lossy())
         .collect::<Vec<_>>();
 
     method
