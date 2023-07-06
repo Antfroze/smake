@@ -49,7 +49,9 @@ pub fn register(lua: &Lua) -> LuaResult<()> {
 }
 
 pub fn import(lua: &Lua, file_name: String) -> LuaResult<LuaValue> {
+    let backup: Option<Table<'_>> = lua.globals().get::<_, Option<Table>>("Plugin")?;
     lua.globals().set("Plugin", lua.create_table()?)?;
+
     let script = std::fs::read_to_string(format!("./plugins/{}.lua", file_name)).map_err(|e| {
         LuaError::RuntimeError(format!("Failed to load plugin: {}.", e).to_string())
     })?;
@@ -65,7 +67,11 @@ pub fn import(lua: &Lua, file_name: String) -> LuaResult<LuaValue> {
     let cloned_fn = import_fn.clone();
     let result = cloned_fn.call(())?;
 
-    lua.globals().raw_remove("Plugin")?;
+    if backup.is_some() {
+        lua.globals().set("Plugin", backup)?;
+    } else {
+        lua.globals().raw_remove("Plugin")?;
+    }
 
     Ok(result)
 }
